@@ -1,0 +1,123 @@
+must use conda environment rt for Thang's rt project
+https://docs.anaconda.com/working-with-conda/environments/
+
+eg conda create -n myenvironment python numpy pandas
+
+\> conda activate rt
+
+
+when done
+\> conda deactivate
+
+conda install tensorflow 
+conda install pandas
+
+=============training=================
+python rt.py train -data deepdia -logs logs-train-deepdia -epochs 2 -n_layers 4 -n_heads 8 -dropout 0.1 -batch_size 64 -d_model 64 -d_ff 256
+
+
+=============test=================
+python rt.py predict deepdia-b64-dm64-df256-nl4-nh8-dr0.1-ep2/ -data deepdia -output output.txt
+
+ Layer (type)                Output Shape              Param #
+=================================================================
+ input (InputLayer)          [(None, 51)]              0
+
+ transformer (encoder_block)  (None, 51, 64)           204736
+
+ CLS_token (SlicingOpLambda)  (None, 64)               0
+
+ predict_1 (Dense)           (None, 512)               33280
+
+ predict_dropout_1 (Dropout)  (None, 512)              0
+
+ predict_2 (Dense)           (None, 512)               262656
+
+ predict_dropout_2 (Dropout)  (None, 512)              0
+
+ output (Dense)              (None, 1)                 513
+
+=================================================================
+Total params: 501,185
+Trainable params: 501,185
+Non-trainable params: 0
+_________________________________________________________________
+2024-10-21 11:27:35.038151: E tensorflow/core/framework/node_def_util.cc:675] NodeDef mentions attribute epsilon which is not in the op definition: Op<name=_MklFusedBatchMatMulV2; signature=x:T, y:T, args:num_args*T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_FLOAT]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=num_args:int,min=0; attr=fused_ops:list(string),default=[]> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node rt_transformer/transformer/encoder_layer/multi_head_attention/add}}
+697/697 [==============================] - 10s 13ms/step
+
+Model epoch = 1 ; MAE = 7.235531957621369
+
+
+=============== porting to pytorch =====================================================
+
+python train.py --device=cpu --compile=False --eval_iters=10 --log_interval=10 --batch_size=12 --n_layer=4 --n_head=4 --n_embd=128 --max_iters=200 --lr_decay_iters=200 --dropout=0.0 --dff=256 --epochs=2 --eval_iterval=20
+
+
+before the predict-head: mean instead of [0]
+https://www.packtpub.com/en-us/learning/how-to-tutorials/text-classification-with-transformers?srsltid=AfmBOorRMlMqQkD1Ipt8FQSzk1MQxTra-yR-6MHDTG_O8bV_81Dewy0A
+output.mean(dim=1): The purpose of using mean is to aggregate the information from the sequence into a compact representation before feeding it into self.classifier_head. It helps in reducing the spatial dimensionality and extracting the most important features from the sequence. Given the input shape (batch_size, block_size, embeds_size), the output shape is (batch_size, embeds_size). So, one fixed-size vector for each batch.
+
+python .\predict.py --device=cpu
+
+
+###======================deepdia-b64-dm64-df256-nl4-nh8-dr0.1-ep2/
+python train.py --device=cpu --compile=False --eval_iters=10 --log_interval=100000 --batch_size=64 --n_layer=4 --n_head=8 --n_embd=64 --max_iters=200 --lr_decay_iters=200 --dropout=0.1 --dff=256 --epochs=2 --eval_interval=20
+
+Initial val loss 0.1367
+epoch: 1, train loss: 0.0495, val loss 0.0335
+saving checkpoint to out
+epoch: 2, train loss: 0.0305, val loss 0.0291
+saving checkpoint to out
+
+python .\predict.py --device=cpu
+number of parameters: 0.49M
+                          value
+parameter
+data                    deepdia
+batch_size                   64
+d_model                      64
+d_ff                        256
+n_layers                      4
+n_heads                       8
+dropout                     0.1
+epochs                        2
+vocab_size                   22
+max_length                   51
+min_val     -0.9466131847100333
+max_val      1.9408807302384314
+torch.Size([22286, 51]) torch.Size([22286, 1])
+Predict loss: 0.2901
+
+Model epoch = 2 ; MAE = 13.015941205765785
+
+                          value
+parameter
+data                    deepdia
+batch_size                   64
+d_model                      64
+d_ff                        256
+n_layers                      4
+n_heads                       8
+dropout                     0.1
+epochs                        2
+vocab_size                   22
+max_length                   51
+min_val     -0.9466131847100333
+max_val      1.9408807302384314
+torch.Size([22286, 51]) torch.Size([22286, 1])
+Predict loss: 0.2576
+
+Model epoch = 2 ; MAE = 6.467903889952847
+
+Notes
+- learning rate (rt: 0.9 0.98 1e-9) a bit different from Karpathy's
+- ctx context manager
+- resume training from checkpoint
+python train.py --device=cpu --compile=False --batch_size=64 --n_layer=4 --n_head=8 --n_embd=64 --lr_decay_iters=200 --dropout=0.1 --dff=256 --epochs=10
+python train.py --init_from=resume --device=cpu --compile=False --batch_size=64 --n_layer=4 --n_head=8 --n_embd=64 --lr_decay_iters=200 --dropout=0.1 --dff=256
+
+
+todo:
+
+- bias
+- directory by dataset

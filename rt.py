@@ -24,7 +24,8 @@ import numpy as np
 import tensorflow as tf
 from tensorboard.plugins.hparams import api as hp
 
-DATA_DIR = os.environ['HOME'] + '/data'
+DATA_DIR = './data' #os.environ['HOME'] + '/data'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
 #region ms_data
 
@@ -159,7 +160,7 @@ class data_generics():
 
         min_sequence_length = 7
         max_sequence_length = 50
-
+        
         d = pd.read_csv(filename)
 
         if seq_header not in d:
@@ -555,7 +556,7 @@ class encoder_block(tf.keras.layers.Layer):
 
         self.dropout = tf.keras.layers.Dropout(rate)
 
-    def call(self, x, training):
+    def call(self, x, training=None):
 
         seq_len = tf.shape(x)[1]
 
@@ -750,7 +751,7 @@ def main():
 
             tf.random.set_seed(1)
             np.random.seed(1)
-
+            
             model = build_model(
                 num_layers = args.n_layers,
                 d_model = args.d_model,
