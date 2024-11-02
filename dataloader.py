@@ -401,6 +401,12 @@ class DatasetRT():
         self.loader_val = DataLoader(val_tensor, batch_size=batch_size, shuffle=True,drop_last=True)
         print(f"Total number of val batches: {len(self.loader_val)}")
 
+        if self.device_type == 'cuda':
+            train_tensor.data.to(torch.device("cuda:0"))  # put data into GPU entirely
+            train_tensor.target.to(torch.device("cuda:0")) 
+            val_tensor.data.to(torch.device("cuda:0"))  # put data into GPU entirely
+            val_tensor.target.to(torch.device("cuda:0")) 
+
         print('CLS =', self.CLS)
         # if training == True:
         #     print(len(x_train), 'Training sequences')            
@@ -419,7 +425,7 @@ class DatasetRT():
         self.vocab_size = self.CLS + 1
         self.device_type = device_type
         self.device = device
-        self.epoch = epochs
+        self.epoch = epochs        
 
     def get_batch(self, split):
         if split == 'train':
