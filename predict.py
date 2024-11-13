@@ -8,8 +8,7 @@ import pandas as pd
 import numpy as np
 #import tiktoken
 from model import Config, Transformer
-from dataloader import load_test_data
-from rt import min_max_scale_rev
+from dataloader import load_test_data, min_max_scale_rev
 
 # -----------------------------------------------------------------------------
 out_dir = 'out' # ignored if init_from is not 'resume'
@@ -21,6 +20,14 @@ compile = False # use PyTorch 2.0 to compile the model to be faster
 output = 'output_py.txt'
 exec(open('configurator.py').read()) # overrides from command line or config file
 # -----------------------------------------------------------------------------
+
+def to_device(x, y):
+    if device_type == 'cuda':
+    # pin arrays x,y, which allows us to move them to GPU asynchronously (non_blocking=True)
+        x, y = x.pin_memory().to(device, non_blocking=True), y.pin_memory().to(device, non_blocking=True)
+    else:
+        x, y = x.to(device), y.to(device)
+    return x, y
 
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -53,10 +60,12 @@ print(para)
 
 #predict
 x_test, y_test, all_peps = load_test_data(para.loc['data', 'value'], CLS=config.CLS)
+x_test, y_test = to_device(x_test, y_test)
 print(x_test.shape, y_test.shape)
-with ctx:
-    y_predict, loss = model(x_test, y_test)
-    print(f"Predict loss: {loss.item():.4f}")
+with torch.no_grad():
+    with ctx:
+        y_predict, loss = model(x_test, y_test)
+        print(f"Predict loss: {loss.item():.4f}")
     
 
 def quick_test(y_predict, y_test, min_val, max_val, data):
@@ -98,7 +107,8 @@ a, b = quick_test(
     max_val = float(para.loc['max_val', 'value']),
     data=para.loc['data', 'value']
     )
-print('\nModel epoch =', checkpoint['epoch'], '; MAE =', np.median(np.abs(a-b)), '\n\n')            
+mae = torch.median(abs(a-b))
+print('\nModel epoch =', checkpoint['epoch'], '; MAE =', mae, '\n\n')            
 
 pd.DataFrame({'sequence': all_peps,
                     'y': a,

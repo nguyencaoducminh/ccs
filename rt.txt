@@ -116,8 +116,90 @@ Notes
 python train.py --device=cpu --compile=False --batch_size=64 --n_layer=4 --n_head=8 --n_embd=64 --lr_decay_iters=200 --dropout=0.1 --dff=256 --epochs=10
 python train.py --init_from=resume --device=cpu --compile=False --batch_size=64 --n_layer=4 --n_head=8 --n_embd=64 --lr_decay_iters=200 --dropout=0.1 --dff=256
 
+-----gradient_accumulation_steps
+Initial val loss 0.1367
+epoch: 1, train loss: 0.1324, val loss 0.1294
+epoch: 2, train loss: 0.1156, val loss 0.0997
+epoch: 3, train loss: 0.0928, val loss 0.0817
+epoch: 4, train loss: 0.0712, val loss 0.0919
+epoch: 5, train loss: 0.0837, val loss 0.0725
+epoch: 6, train loss: 0.0562, val loss 0.0493
+epoch: 7, train loss: 0.0490, val loss 0.0576
+epoch: 8, train loss: 0.0473, val loss 0.0419
+epoch: 9, train loss: 0.0442, val loss 0.0387
+epoch: 10, train loss: 0.0392, val loss 0.0507
 
-todo:
+---NO--gradient_accumulation_steps
+Initial val loss 0.1367
+epoch: 1, train loss: 0.0495, val loss 0.0335
+epoch: 2, train loss: 0.0305, val loss 0.0291
+epoch: 3, train loss: 0.0299, val loss 0.0252
+epoch: 4, train loss: 0.0290, val loss 0.0365
+epoch: 5, train loss: 0.0283, val loss 0.0287
+epoch: 6, train loss: 0.0279, val loss 0.0286
+epoch: 7, train loss: 0.0277, val loss 0.0251
+epoch: 8, train loss: 0.0271, val loss 0.0248
+epoch: 9, train loss: 0.0265, val loss 0.0288
+epoch: 10, train loss: 0.0264, val loss 0.0271
 
+Predict loss: 0.2588
+
+Model epoch = 10 ; MAE = 5.861498045984305
+
+
+
+
+============--running with full config to see how it compares with paper results
+machine: Thang
+
+python train.py --batch_size=256 --n_layer=10 --n_head=8 --n_embd=256 --dropout=0.1 --dff=1024 --epochs=1000
+epoch: 979, train loss: 0.0063, val loss 0.0135
+epoch: 980, train loss: 0.0064, val loss 0.0128
+epoch: 981, train loss: 0.0064, val loss 0.0148
+epoch: 982, train loss: 0.0064, val loss 0.0126
+epoch: 983, train loss: 0.0064, val loss 0.0127
+epoch: 984, train loss: 0.0066, val loss 0.0119
+epoch: 985, train loss: 0.0065, val loss 0.0130
+epoch: 986, train loss: 0.0065, val loss 0.0124
+epoch: 987, train loss: 0.0065, val loss 0.0147
+epoch: 988, train loss: 0.0065, val loss 0.0153
+epoch: 989, train loss: 0.0064, val loss 0.0133
+epoch: 990, train loss: 0.0064, val loss 0.0138
+epoch: 991, train loss: 0.0067, val loss 0.0136
+epoch: 992, train loss: 0.0064, val loss 0.0124
+epoch: 993, train loss: 0.0065, val loss 0.0125
+epoch: 994, train loss: 0.0064, val loss 0.0151
+epoch: 995, train loss: 0.0063, val loss 0.0128
+epoch: 996, train loss: 0.0065, val loss 0.0133
+epoch: 997, train loss: 0.0065, val loss 0.0123
+epoch: 998, train loss: 0.0065, val loss 0.0119
+epoch: 999, train loss: 0.0064, val loss 0.0155
+epoch: 1000, train loss: 0.0063, val loss 0.0130
+
+predict:
+torch.Size([22286, 51]) torch.Size([22286, 1])
+Predict loss: 0.2581
+
+Model epoch = 1000 ; MAE = tensor(2.4395, device='cuda:0', dtype=torch.float64)
+
+
+===================running autort LOCAL small config
+python train.py --device=cpu --compile=False --batch_size=64 --n_layer=4 --n_head=8 --n_embd=64 --lr_decay_iters=200 --dropout=0.1 --dff=256 --epochs=10 --dataset=autort
+...
+epoch: 10, train loss: 0.0261, val loss 0.0289
+
+python .\predict.py --device=cpu
+Predict loss: 0.0292
+
+Model epoch = 10 ; MAE = tensor(2.2865, dtype=torch.float64)
+
+
+
+============todo:==================
+- gradient_accumulation_steps - probably not
+- ddp
 - bias
-- directory by dataset
+- model directory when predict
+- data directory when train
+- lr_decay_iters
+- memory not enough in Thang's server

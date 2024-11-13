@@ -192,11 +192,20 @@ def estimate_loss():
     model.train()
     return out
 
+def to_device(x, y):
+    if device_type == 'cuda':
+    # pin arrays x,y, which allows us to move them to GPU asynchronously (non_blocking=True)
+        x, y = x.pin_memory().to(device, non_blocking=True), y.pin_memory().to(device, non_blocking=True)
+    else:
+        x, y = x.to(device), y.to(device)
+    return x, y
+
 @torch.no_grad()
 def estimate_val_loss():    
     losses = torch.zeros(len(data.loader_val))
     model.eval()
     for step, (X, y) in enumerate(data.loader_val):        
+        X, y = to_device(X, y)
         with ctx:
             logits, loss = model(X, y)
         losses[step] = loss.item()    
@@ -230,7 +239,8 @@ def trainer(model, dataloader, epoch, best_val_loss, verbose=True):
     if verbose: print(f"Initial val loss {best_val_loss:.4f}")
     while epoch < epochs:
         losses = torch.zeros(len(dataloader))
-        for step, (X, y) in enumerate(dataloader):            
+        for step, (X, y) in enumerate(dataloader):    
+            X, y = to_device(X, y)       
             optimizer.zero_grad(set_to_none=True)  
             with ctx:
                 logits, loss = model(X, y)             
