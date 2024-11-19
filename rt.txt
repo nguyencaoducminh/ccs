@@ -194,6 +194,19 @@ Predict loss: 0.0292
 Model epoch = 10 ; MAE = tensor(2.2865, dtype=torch.float64)
 
 
+============= trying csv in Thang's maching ==============
+training phospho
+
+python train.py --batch_size=64 --n_layer=4 --n_head=8 --n_embd=64 --lr_decay_iters=200 --dropout=0.1 --dff=256 --epochs=10 --dataset=phospho
+
+predict using a csv file
+
+running on cpu or switch flash_sdp off will work (scaled_dot_product_attention off).
+don't know why training with scaled_dot_product_attention still works
+
+python predict.py --input=data/test-PXD013453.csv --model_dir=out/phospho-b64-dm64-df256-nl4-nh8-dr0.1-ep10 --seq_header=IntPep --rt_header=iRT --device=cpu --device_type=cpu
+
+
 
 ============todo:==================
 - gradient_accumulation_steps - probably not

@@ -43,7 +43,8 @@ class MultiHeadAttention(nn.Module):
         self.n_head = config.n_head
         self.n_embd = config.n_embd        
         # flash attention support is only in PyTorch >= 2.0
-        self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')        
+        self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')       
+        print("MultiHeadAttention.flash:", self.flash)
 
     def forward(self, x, src_padding_mask=None):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
@@ -58,7 +59,7 @@ class MultiHeadAttention(nn.Module):
         if self.flash:
             # efficient attention using Flash Attention CUDA kernels            
             attn_mask = None if src_padding_mask is None else src_padding_mask.logical_not()              
-            y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask, dropout_p=0, is_causal=False)            
+            y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask, dropout_p=0.0, is_causal=False)            
         else:
             # manual implementation of attention
             att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))

@@ -9,6 +9,13 @@ import numpy as np
 from model import Config, Transformer
 from dataloader import load_test_data, min_max_scale_rev
 
+# to fix cuda problem (don't know why training works by predicting doesn't)
+# scaled_dot_product_attention(q, k, v, attn_mask, dropout_p, is_causal)
+# RuntimeError: CUDA error: invalid configuration argument
+#torch.backends.cuda.enable_mem_efficient_sdp(False)
+#torch.backends.cuda.enable_flash_sdp(False)
+#torch.backends.cuda.enable_math_sdp(True)
+
 # -----------------------------------------------------------------------------
 output_dir = 'out'
 model_dir = 'out' 
@@ -18,6 +25,7 @@ seq_header = 'sequence'
 rt_header = 'rt'
 seed = 1337
 device = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
+device_type = 'cuda'
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16' # 'float32' or 'bfloat16' or 'float16'
 compile = False # use PyTorch 2.0 to compile the model to be faster
 output = 'output_py.txt'
@@ -44,6 +52,7 @@ ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=
 ckpt_path = os.path.join(model_dir, 'ckpt.pt')
 checkpoint = torch.load(ckpt_path, map_location=device)
 config = Config(**checkpoint['model_args'])
+config.device = device
 model = Transformer(config)
 state_dict = checkpoint['model']
 unwanted_prefix = '_orig_mod.'
@@ -119,7 +128,6 @@ a, b = quick_test(
     )
 mae = torch.median(abs(a-b))
 print('\nModel epoch =', checkpoint['epoch'], '; MAE =', mae, '\n\n')            
-
 pd.DataFrame({'sequence': all_peps,
-                    'y': a,
-                    'y_pred': b}).to_csv(os.path.join(output_dir, output), sep = '\t', index = False)
+                    'y': a.cpu().float(),
+                    'y_pred': b.cpu().float()}).to_csv(os.path.join(output_dir, output), sep = '\t', index = False)

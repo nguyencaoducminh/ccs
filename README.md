@@ -54,9 +54,10 @@ python .\predict.py --device=cpu --dataset=autort --model_dir=out\deepdia-b64-dm
 ```
 The predicted values are in column 'y_pred' in the output tab-separated-value file. The measured values are in column 'y'. One has to use the holdout data corresponding to the trained model.
 
-### Predicting retention time for a new set of peptides (TO BE MODIFIED)
+### Predicting retention time for a new set of peptides
 
 ```
-python rt.py predict [model_dir/] -input peptides.csv -output peptides-rt.txt
+python predict.py --input=data/test-PXD013453.csv --model_dir=out/phospho-b64-dm64-df256-nl4-nh8-dr0.1-ep10 --seq_header=IntPep --rt_header=iRT
+
 ```
-The input peptides.csv is a comma-separated-value text file containing two columns named 'sequence' and 'rt'. When measured rt values are not available, one can fill the rt column with 0. The predicted values are in column 'y_pred' in the output tab-separated-value peptides-rt.txt file. The input rt values are copied to column 'y' in the output.
+The input test-PXD013453.csv is a comma-separated-value text file containing two columns named 'IntPep' and 'iRT'. When measured rt values are not available, one can fill the iRT column with 0. The predicted values are in column 'y_pred' in the output tab-separated-value peptides-rt.txt file. The input rt values are copied to column 'y' in the output.
