@@ -1,18 +1,21 @@
 """
-Sample from a trained model
+predict using a trained model
 """
 import os
 from contextlib import nullcontext
 import torch
 import pandas as pd
 import numpy as np
-#import tiktoken
 from model import Config, Transformer
 from dataloader import load_test_data, min_max_scale_rev
 
 # -----------------------------------------------------------------------------
-out_dir = 'out' # ignored if init_from is not 'resume'
-
+output_dir = 'out'
+model_dir = 'out' 
+dataset = 'None'
+input = 'None'
+seq_header = 'sequence'
+rt_header = 'rt'
 seed = 1337
 device = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16' # 'float32' or 'bfloat16' or 'float16'
@@ -38,7 +41,7 @@ ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torc
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
 # model. Load from a model saved in a specific directory
-ckpt_path = os.path.join(out_dir, 'ckpt.pt')
+ckpt_path = os.path.join(model_dir, 'ckpt.pt')
 checkpoint = torch.load(ckpt_path, map_location=device)
 config = Config(**checkpoint['model_args'])
 model = Transformer(config)
@@ -55,11 +58,18 @@ if compile:
     model = torch.compile(model) # requires PyTorch 2.0 (optional)
 
 # model's parameters
-para = pd.read_csv(os.path.join(out_dir, 'parameters.txt'), sep = '\t', index_col = 0)
+para = pd.read_csv(os.path.join(model_dir, 'parameters.txt'), sep = '\t', index_col = 0)
 print(para)
 
 #predict
-x_test, y_test, all_peps = load_test_data(para.loc['data', 'value'], CLS=config.CLS)
+input_file = None
+if dataset == 'None':
+    dataset = para.loc['data', 'value']
+    input_file = input
+print(dataset)
+x_test, y_test, all_peps = load_test_data(data=dataset, input_file=input_file, 
+                                          seq_header=seq_header, rt_header=rt_header,
+                                          CLS=config.CLS, seq_length=int(para.loc['max_length', 'value']))
 x_test, y_test = to_device(x_test, y_test)
 print(x_test.shape, y_test.shape)
 with torch.no_grad():
@@ -112,4 +122,4 @@ print('\nModel epoch =', checkpoint['epoch'], '; MAE =', mae, '\n\n')
 
 pd.DataFrame({'sequence': all_peps,
                     'y': a,
-                    'y_pred': b}).to_csv(os.path.join(out_dir, output), sep = '\t', index = False)
+                    'y_pred': b}).to_csv(os.path.join(output_dir, output), sep = '\t', index = False)

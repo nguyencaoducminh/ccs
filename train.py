@@ -33,7 +33,7 @@ from dataloader import DatasetRT
 # -----------------------------------------------------------------------------
 # default config values designed to train 
 # I/O
-out_dir = 'out'
+out_root = 'out'
 eval_interval = 2000
 log_interval = 1
 eval_iters = 200
@@ -94,6 +94,10 @@ else:
     master_process = True
     seed_offset = 0
     ddp_world_size = 1
+
+cp_path = dataset + '-b' + str(batch_size) + '-dm' + str(n_embd) + '-df' + str(dff) + '-nl' + str(n_layer) + '-nh' + str(n_head) + '-dr' + str(dropout) + '-ep' + str(epochs)
+out_dir = os.path.join(out_root, cp_path)
+print(out_dir)
 
 if master_process:
     os.makedirs(out_dir, exist_ok=True)

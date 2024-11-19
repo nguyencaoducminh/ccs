@@ -199,7 +199,6 @@ Model epoch = 10 ; MAE = tensor(2.2865, dtype=torch.float64)
 - gradient_accumulation_steps - probably not
 - ddp
 - bias
-- model directory when predict
-- data directory when train
 - lr_decay_iters
-- memory not enough in Thang's server
+- tuning
+- set input(csv) when predict

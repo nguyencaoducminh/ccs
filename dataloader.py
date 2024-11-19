@@ -130,7 +130,7 @@ class data_generics():
             'V': 18,
             'W': 19,
             'Y': 20,
-            'o': 21,
+            'o': 21
         }
 
         array = np.zeros([len(sequences), max_sequence_length], dtype=int)
@@ -161,16 +161,16 @@ class data_generics():
 
             if s.find('(') < 0 and (min_sequence_length <= len(s) <= max_sequence_length):
                 if has_rt :
-                    selected_peptides[s] = row['rt']
+                    selected_peptides[s] = row[rt_header]
                 else :
                     selected_peptides[s] = 0
 
         print(len(selected_peptides), ' peptides selected')
 
-        df = pd.DataFrame.from_dict(selected_peptides, orient = 'index', columns = ['rt'])
+        df = pd.DataFrame.from_dict(selected_peptides, orient = 'index', columns = [rt_header])
         x = cls.sequence_to_integer(df.index.values, max_sequence_length)
 
-        return (x, df['rt'].to_numpy())
+        return (x, df[rt_header].to_numpy())
 
 
     @classmethod
@@ -329,8 +329,20 @@ class data_generics():
         int2seqf = lambda x : ''.join([int2seq[c] for c in x if c > 0])
         return ([int2seqf(x) for x in X])
     
-def load_test_data(data, CLS):
-    if data == 'prosit':
+def load_test_data(data, input_file, seq_header, rt_header, CLS, seq_length):
+    if input_file is not None:
+        if data == 'prosit':
+            x_test, y_test = data_generics.load_prosit(input_file, seq_header, rt_header)                
+        elif data == 'deepdia':
+            x_test, y_test = data_generics.load_deepdia(input_file, seq_header, rt_header)               
+        elif data == 'autort':
+            x_test, y_test = data_generics.load_autort(input_file, seq_header, rt_header)
+        elif data == 'phospho':
+            x_test, y_test = data_generics.load_phospho(input_file, seq_header, rt_header)
+        else:
+            print('Unknown model')
+            exit(0)
+    elif data == 'prosit':
         x_test, y_test = data_prosit.load_testing()                
     elif data == 'deepdia':
         x_test, y_test = data_deepdia.load_testing_transformer()               
@@ -347,8 +359,12 @@ def load_test_data(data, CLS):
     else:    
         all_peps = data_generics.integer_to_sequence(x_test)
 
-
+    print(seq_length, x_test.shape)
+    assert seq_length >= x_test.shape[1]
     x_test = np.concatenate((np.full((x_test.shape[0], 1), CLS), x_test), axis = 1)    
+    if seq_length > x_test.shape[1]:        
+        x_test = np.concatenate((x_test, np.full((x_test.shape[0],  (seq_length - x_test.shape[1])), CLS)), axis = 1)
+    assert seq_length == x_test.shape[1]
     return torch.tensor(x_test), torch.tensor(y_test).unsqueeze(1), all_peps
 
 class DatasetRT():
