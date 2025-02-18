@@ -7,7 +7,8 @@ import torch
 import pandas as pd
 import numpy as np
 from model import Config, Transformer
-from dataloader import load_test_data, min_max_scale_rev
+# from dataloader import load_test_data, min_max_scale_rev
+from dataloaderccs import load_test_data, min_max_scale_rev
 
 # to fix cuda problem (don't know why training works by predicting doesn't)
 # scaled_dot_product_attention(q, k, v, attn_mask, dropout_p, is_causal)

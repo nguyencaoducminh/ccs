@@ -162,11 +162,31 @@ class data_ionmod():
         return cls.load_ionmod(dataset)
         
     @classmethod
-    def load_validation_transformer(cls, dataset):
+    def load_testing_transformer(cls, dataset):
         x_test = np.load(DATA_DIR + f'/ionmod/test/{dataset}_x_test.npy')
         y_test = np.load(DATA_DIR + f'/ionmod/test/{dataset}_y_test.npy')
 
         return (x_test, y_test)
+    
+def load_test_data(data, input_file, seq_header, rt_header, CLS, seq_length):
+    if input_file is not None:
+        print('Incomplete')
+        exit(0)
+    elif data in ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda']:
+        x_test, y_test = data_ionmod.load_testing_transformer()                
+    else:
+        print('Unknown model')
+        exit(0)
+
+    all_peps = data_ionmod.integer_to_sequence_phospho(x_test)
+
+    print(seq_length, x_test.shape)
+    assert seq_length >= x_test.shape[1]
+    x_test = np.concatenate((np.full((x_test.shape[0], 1), CLS), x_test), axis = 1)    
+    if seq_length > x_test.shape[1]:        
+        x_test = np.concatenate((x_test, np.full((x_test.shape[0],  (seq_length - x_test.shape[1])), CLS)), axis = 1)
+    assert seq_length == x_test.shape[1]
+    return torch.tensor(x_test), torch.tensor(y_test).unsqueeze(1), all_peps
     
 class DatasetCCS():
 
