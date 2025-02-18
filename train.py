@@ -28,7 +28,8 @@ from torch.distributed import init_process_group, destroy_process_group
 import pandas as pd
 
 from model import Config, Transformer
-from dataloader import DatasetRT
+# from dataloader import DatasetRT
+from dataloaderccs import DatasetCCS
 
 # -----------------------------------------------------------------------------
 # default config values designed to train 
@@ -112,7 +113,8 @@ ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=
 
 print(f"device = {device}, device_type = {device_type}, ddp = {ddp}")
 # deepdia data loader # poor man's data loader
-data = DatasetRT(dataset=dataset, batch_size=batch_size, epochs=epochs, device=device, device_type=device_type)
+# data = DatasetRT(dataset=dataset, batch_size=batch_size, epochs=epochs, device=device, device_type=device_type)
+data = DatasetCCS(dataset=dataset, batch_size=batch_size, epochs=epochs, device=device, device_type=device_type)
 
 # init these up here, can override if init_from='resume' (i.e. from a checkpoint)
 iter_num = 0
