@@ -99,7 +99,7 @@ class data_ionmod():
     @classmethod
     def ionmod_to_integet(cls, sequences, max_sequence_length = 60):
         
-        ionmod_ALPHABET = {
+        IONMOD_ALPHABET = {
             "A": 1,
             "C": 2,
             "D": 3,
@@ -120,7 +120,7 @@ class data_ionmod():
             "V": 18,
             "W": 19,
             "Y": 20,
-            "M[UNIMOD:1]": 21,
+            "M[UNIMOD:35]": 21,
             "S[UNIMOD:21]": 22,
             "T[UNIMOD:21]": 23,
             "Y[UNIMOD:21]": 24,
@@ -139,7 +139,7 @@ class data_ionmod():
                     continue
                 if s == '<END>':
                     continue
-                array[i, j-non_dict] = ionmod_ALPHABET[s]
+                array[i, j-non_dict] = IONMOD_ALPHABET[s]
         return array
     
     @classmethod
@@ -182,8 +182,8 @@ class data_ionmod():
         
         x_test = cls.ionmod_to_integet(data_test['sequence-tokenized'], max_sequence_length = max_sequence_length)
         y_test = data_test['ccs'].to_numpy()
-        np.save(IONMOD_DIR + f'/test/{dataset}_x_test.npy', x_test)
-        np.save(IONMOD_DIR + f'/test/{dataset}_y_test.npy', y_test)
+        np.save(f'./data/ionmod/test/{dataset}_x_test.npy', x_test)
+        np.save(f'./data/ionmod/test/{dataset}_y_test.npy', y_test)
 
         return (x_train, y_train), (x_val, y_val)
 
@@ -197,8 +197,8 @@ class data_ionmod():
         
     @classmethod
     def load_testing_transformer(cls, dataset):
-        x_test = np.load(IONMOD_DIR + f'/test/{dataset}_x_test.npy')
-        y_test = np.load(IONMOD_DIR + f'/test/{dataset}_y_test.npy')
+        x_test = np.load(f'./data/ionmod/test/{dataset}_x_test.npy')
+        y_test = np.load(f'./data/ionmod/test/{dataset}_y_test.npy')
 
         return (x_test, y_test)
     
