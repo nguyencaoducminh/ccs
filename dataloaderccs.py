@@ -207,7 +207,7 @@ def load_test_data(data, input_file, seq_header, rt_header, CLS, seq_length):
         print('Incomplete')
         exit(0)
     elif data in IONMOD_DATASETS:
-        x_test, y_test = data_ionmod.load_testing_transformer()                
+        x_test, y_test = data_ionmod.load_testing_transformer(data)                
     else:
         print('Unknown model')
         exit(0)
