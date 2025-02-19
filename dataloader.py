@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 
-DATA_DIR = './data' #os.environ['HOME'] + '/data'
+DATA_DIR = './data/rt' #os.environ['HOME'] + '/data'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
 #region ms_data
