@@ -114,6 +114,13 @@ def quick_test(y_predict, y_test, min_val, max_val, data):
 
         a = y_test
         b = y_predict
+    
+    elif data in ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'all']:
+
+        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
+
+        a = y_test
+        b = y_predict
 
     return a, b
         
