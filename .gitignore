@@ -6,4 +6,4 @@
 /__pycache__
 /.ipynb_checkpoints
 /data/ionmod/test/*.npy
-/data/ionmod/train/*.npy
+/data/meier_2021/test/*.npy
