@@ -195,6 +195,9 @@ class Transformer(nn.Module):
         tok_emb *= math.sqrt(self.config.n_embd)        
         pos = torch.arange(0, self.config.block_size, dtype=torch.long, device=self.config.device) # shape (t)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (t, n_embd)
+
+        # TODO: Embedding charge
+        
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
             x = block(x, src_padding_mask)

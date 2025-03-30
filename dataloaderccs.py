@@ -32,6 +32,9 @@ MEIER_DIR = DATA_DIR + '/meier_2021'
 # DATA_DIR = os.environ['HOME'] + '/data-ccs'
 # IONMOD_DIR = DATA_DIR + '/zenodo/unimod'
 # MEIER_DIR = DATA_DIR + '/Meier_2021'
+
+MEIER_SMALL_DIR = './data/meier_2021'
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
 # Set random seed for spliting train-val-test
@@ -220,12 +223,13 @@ class data_meier():
     @classmethod
     def load_data(cls, dataset):
         if dataset == 'small':
-            data = pd.read_csv(MEIER_DIR + '/meier_small.csv')
+            data = pd.read_csv(MEIER_SMALL_DIR + '/meier_small.csv')
         if dataset == 'train':
             data = pd.read_csv(MEIER_DIR + '/SourceData_Figure_1.csv')
         if dataset == 'meier':
             datatrain = pd.read_csv(MEIER_DIR + '/SourceData_Figure_1.csv')
-            datatest = pd.read_csv(MEIER_DIR + '/SourceData_Figure_4.csv')
+            # datatest = pd.read_csv(MEIER_DIR + '/SourceData_Figure_4.csv')
+            datatest = pd.read_csv(MEIER_DIR + '/Figure_4_MassCharge.csv')
             return datatrain, datatest
 
         return cls.split_data(data=data, split=0.8)
@@ -259,15 +263,30 @@ class data_meier():
         }
 
         array = np.zeros([len(sequences), max_sequence_length], dtype=int)
-        for i, sequence in enumerate(sequences):
+        # for i, sequence in enumerate(sequences):
+        #     # remove '_'
+        #     if sequence.startswith('_'):
+        #         sequence = sequence[1:-1]
+        #     # if sequence starts with (ac) replace with '*'
+        #     if sequence.startswith('(a'):
+        #         sequence = '*' + sequence[4:]
+        #     sequence = re.sub('M\(ox\)', '1', sequence)
+        #     for j, s in enumerate(sequence):
+        #         array[i, j] = MEIER_ALPHABET[s]
+        i = 0
+        for entry in sequences.itertuples(index=False):
+            sequences = entry[0]
+            charge = entry[1]
             # remove '_'
-            sequence = sequence[1:-1]
+            if sequences.startswith('_'):
+                sequences = sequences[1:-1]
             # if sequence starts with (ac) replace with '*'
-            if sequence.startswith('(a'):
-                sequence = '*' + sequence[4:]
-            sequence = re.sub('M\(ox\)', '1', sequence)
-            for j, s in enumerate(sequence):
+            if sequences.startswith('(a'):
+                sequences = '*' + sequences[4:]
+            sequences = re.sub('M\(ox\)', '1', sequences)
+            for j, s in enumerate(sequences):
                 array[i, j] = MEIER_ALPHABET[s]
+            i += 1
         return array
     
     @classmethod
@@ -281,25 +300,31 @@ class data_meier():
         data_train_val, data_test = cls.load_data(dataset)
         
         if dataset == 'train':
-            x_train = cls.meier_to_integer(data_train_val['Modified sequence'], max_sequence_length = max_sequence_length)
+            # x_train = cls.meier_to_integer(data_train_val['Modified sequence'], max_sequence_length = max_sequence_length)
+            x_train = cls.meier_to_integer(data_train_val[['Modified sequence', 'Charge']], max_sequence_length = max_sequence_length)
             y_train = data_train_val['CCS'].to_numpy()
-            x_val = cls.meier_to_integer(data_test['Modified sequence'], max_sequence_length = max_sequence_length)
+            # x_val = cls.meier_to_integer(data_test['Modified sequence'], max_sequence_length = max_sequence_length)
+            x_val = cls.meier_to_integer(data_test[['Modified sequence', 'Charge']], max_sequence_length = max_sequence_length)
             y_val = data_test['CCS'].to_numpy()
 
             return (x_train, y_train), (x_val, y_val)
         
         data_train, data_val = cls.split_data(data_train_val, split=0.875)
 
-        x_train = cls.meier_to_integer(data_train['Modified sequence'], max_sequence_length = max_sequence_length)
+        # x_train = cls.meier_to_integer(data_train['Modified sequence'], max_sequence_length = max_sequence_length)
+        x_train = cls.meier_to_integer(data_train[['Modified sequence', 'Charge']], max_sequence_length = max_sequence_length)
         y_train = data_train['CCS'].to_numpy()
-        x_val = cls.meier_to_integer(data_val['Modified sequence'], max_sequence_length = max_sequence_length)
+        # x_val = cls.meier_to_integer(data_val['Modified sequence'], max_sequence_length = max_sequence_length)
+        x_val = cls.meier_to_integer(data_val[['Modified sequence', 'Charge']], max_sequence_length = max_sequence_length)
         y_val = data_val['CCS'].to_numpy()
         
         if dataset == 'meier':
-            x_test = cls.meier_to_integer(data_test['Modified_sequence'], max_sequence_length = max_sequence_length)
+            # x_test = cls.meier_to_integer(data_test['Modified_sequence'], max_sequence_length = max_sequence_length)
+            x_test = cls.meier_to_integer(data_test[['Modified sequence', 'Charge']], max_sequence_length = max_sequence_length)
             y_test = data_test['CCS'].to_numpy()
         else:
-            x_test = cls.meier_to_integer(data_test['Modified sequence'], max_sequence_length = max_sequence_length)
+            # x_test = cls.meier_to_integer(data_test['Modified sequence'], max_sequence_length = max_sequence_length)
+            x_test = cls.meier_to_integer(data_test[['Modified sequence', 'Charge']], max_sequence_length = max_sequence_length)
             y_test = data_test['CCS'].to_numpy()
         
         np.save(f'./data/meier_2021/test/{dataset}_x_test.npy', x_test)
