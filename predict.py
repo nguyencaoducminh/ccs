@@ -33,6 +33,10 @@ output = 'output_py.txt'
 exec(open('configurator.py').read()) # overrides from command line or config file
 # -----------------------------------------------------------------------------
 
+# CCS Available datasets
+IONMOD_DATASETS = ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'ionmod']
+MEIER_DATASETS = ['small', 'train', 'meier']
+
 def to_device(x, y):
     if device_type == 'cuda':
     # pin arrays x,y, which allows us to move them to GPU asynchronously (non_blocking=True)
@@ -115,7 +119,14 @@ def quick_test(y_predict, y_test, min_val, max_val, data):
         a = y_test
         b = y_predict
     
-    elif data in ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'all']:
+    elif data in IONMOD_DATASETS:
+
+        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
+
+        a = y_test
+        b = y_predict
+
+    elif data in MEIER_DATASETS:
 
         y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
 
@@ -123,8 +134,6 @@ def quick_test(y_predict, y_test, min_val, max_val, data):
         b = y_predict
 
     return a, b
-        
-    
 
 # quick test
 a, b = quick_test(
