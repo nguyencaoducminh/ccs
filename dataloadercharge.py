@@ -143,26 +143,26 @@ class data_meier():
         x_train = cls.meier_to_integer(data_train['Modified sequence'], max_sequence_length = max_sequence_length)
         x_train_charge = data_train['Charge'].to_numpy()
         x_train_charge = x_train_charge[:, np.newaxis]
-        x_train = np.concatenate((x_train, x_train_charge), axis = 1) # x_train = (sequence, charge)
+        x_train = np.concatenate((x_train, x_train_charge), axis = 1) # x_train = [sequence, charge]
         y_train = data_train['CCS'].to_numpy()
 
         x_val = cls.meier_to_integer(data_val['Modified sequence'], max_sequence_length = max_sequence_length)
         x_val_charge = data_val['Charge'].to_numpy()
         x_val_charge = x_val_charge[:, np.newaxis]
-        x_val = np.concatenate((x_val, x_val_charge), axis = 1) # x_val = (sequence, charge)
+        x_val = np.concatenate((x_val, x_val_charge), axis = 1) # x_val = [sequence, charge]
         y_val = data_val['CCS'].to_numpy()
         
         if dataset == 'meier':
             x_test = cls.meier_to_integer(data_test['Modified_sequence'], max_sequence_length = max_sequence_length)
             x_test_charge = data_test['Charge'].to_numpy()
             x_test_charge = x_test_charge[:, np.newaxis]
-            x_test = np.concatenate((x_test, x_test_charge), axis = 1) # x_test = (sequence, charge)
+            x_test = np.concatenate((x_test, x_test_charge), axis = 1) # x_test = [sequence, charge]
             y_test = data_test['CCS'].to_numpy()
         else:
             x_test = cls.meier_to_integer(data_test['Modified sequence'], max_sequence_length = max_sequence_length)
             x_test_charge = data_test['Charge'].to_numpy()
             x_test_charge = x_test_charge[:, np.newaxis]
-            x_test = np.concatenate((x_test, x_test_charge), axis = 1) # x_test = (sequence, charge)
+            x_test = np.concatenate((x_test, x_test_charge), axis = 1) # x_test = [sequence, charge]
             y_test = data_test['CCS'].to_numpy()
         
         np.save(f'./data/meier_2021/test/{dataset}_x_test.npy', x_test)
