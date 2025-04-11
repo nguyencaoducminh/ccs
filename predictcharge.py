@@ -6,7 +6,7 @@ from contextlib import nullcontext
 import torch
 import pandas as pd
 import numpy as np
-from model import Config, Transformer
+from modelcharge import Config, Transformer
 # from dataloader import load_test_data, min_max_scale_rev
 from dataloaderccs import load_test_data, min_max_scale_rev, min_max_scale
 
@@ -34,7 +34,6 @@ exec(open('configurator.py').read()) # overrides from command line or config fil
 # -----------------------------------------------------------------------------
 
 # CCS Available datasets
-IONMOD_DATASETS = ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'ionmod']
 MEIER_DATASETS = ['small', 'train', 'meier']
 
 def to_device(x, y):
@@ -94,45 +93,11 @@ with torch.no_grad():
     
 
 def quick_test(y_predict, y_test, min_val, max_val, data):
-    if data == 'autort':
-        a = min_max_scale_rev(y_test, min = 0.0, max = 101.33)
-        b = min_max_scale_rev(y_predict, min = 0.0, max = 101.33)                
 
-    elif data == 'prosit':
-        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
-        
-        v = 1883.0160689
-        m = 56.35363441
-        a = y_test.astype(np.float32).reshape(-1) * np.sqrt(v) + m
-        b = y_predict * np.sqrt(v) + m
-        
-    elif data == 'deepdia':
-        
-        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
+    y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
 
-        a = y_test * 100
-        b = y_predict * 100
-
-    elif data == 'phospho':
-        
-        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
-
-        a = y_test
-        b = y_predict
-    
-    elif data in IONMOD_DATASETS:
-
-        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
-
-        a = y_test
-        b = y_predict
-
-    elif data in MEIER_DATASETS:
-
-        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
-
-        a = y_test
-        b = y_predict
+    a = y_test
+    b = y_predict
 
     return a, b
 
