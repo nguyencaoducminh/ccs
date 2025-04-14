@@ -11,10 +11,6 @@ from torch.utils.data import TensorDataset, DataLoader
 """
 Load CCS datasets
 
-Ionmob
-PATH: ./data/ionmod
-AVAILABLE: chang, ogata, sara, tenzer, tenzer-phospho, zepeda with 'ionmod' for the combined dataset
-
 Meier 2021
 PATH: ./data/meier_2021
 AVAILABLE:

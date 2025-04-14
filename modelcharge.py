@@ -185,23 +185,22 @@ class Transformer(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(self, x, targets=None):  
-        # x : (batch_size, sequence_length)
+        # x : (batch_size, sequence_length+1)
 
         # get the charge
-        charge = x[:,-1]
-        # get sequence
-        x = x[:,:-1]
-        
+        charge = x[:,-1] # (batch_size, 1)
+
         # create padding mask, add extra dimensions to add the padding to the attention logits.
-        src_padding_mask = torch.eq(x, self.config.CLS)[:, None, None, :]
+        src_padding_mask = torch.eq(x, self.config.CLS)[:, None, None, :]        
          
         # forward the transformer model
         tok_emb  = self.transformer.wte(x) # token embeddings of shape (b, t, n_embd)
-        tok_emb *= math.sqrt(self.config.n_embd)        
+        tok_emb *= math.sqrt(self.config.n_embd)
+
+        # Create array with 
         pos = torch.arange(0, self.config.block_size, dtype=torch.long, device=self.config.device) # shape (t)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (t, n_embd)
-
-        # TODO: Embedding charge
+        pos_emb[-1, :] = 0
         
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
