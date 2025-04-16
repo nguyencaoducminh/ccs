@@ -196,8 +196,6 @@ class Transformer(nn.Module):
         # forward the transformer model
         tok_emb  = self.transformer.wte(x) # token embeddings of shape (b, t, n_embd)
         tok_emb *= math.sqrt(self.config.n_embd)
-
-        # Create array with 
         pos = torch.arange(0, self.config.block_size, dtype=torch.long, device=self.config.device) # shape (t)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (t, n_embd)
         pos_emb[-1, :] = 0

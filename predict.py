@@ -6,6 +6,8 @@ from contextlib import nullcontext
 import torch
 import pandas as pd
 import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
+
 from model import Config, Transformer
 # from dataloader import load_test_data, min_max_scale_rev
 from dataloaderccs import load_test_data, min_max_scale_rev, min_max_scale
@@ -84,14 +86,25 @@ print(dataset)
 x_test, y_test, all_peps = load_test_data(data=dataset, input_file=input_file, 
                                           seq_header=seq_header, rt_header=rt_header,
                                           CLS=config.CLS, seq_length=int(para.loc['max_length', 'value']))
-y_test = min_max_scale(y_test, min = float(para.loc['min_val', 'value']), max = float(para.loc['max_val', 'value']))
-x_test, y_test = to_device(x_test, y_test)
-print(x_test.shape, y_test.shape)
+
+# y_test = min_max_scale(y_test, min = float(para.loc['min_val', 'value']), max = float(para.loc['max_val', 'value']))
+# x_test, y_test = to_device(x_test, y_test)
+
+y_test_scaled = min_max_scale(y_test, min = float(para.loc['min_val', 'value']), max = float(para.loc['max_val', 'value']))
+x_tensor = TensorDataset(x_test, y_test_scaled)
+load_test_data = DataLoader(x_tensor, batch_size = 1, shuffle = False)
+
 with torch.no_grad():
-    with ctx:
-        y_predict, loss = model(x_test, y_test)
-        print(f"Predict loss: {loss.item():.4f}")
-    
+    losses = torch.zeros(len(load_test_data))
+    y_predict = torch.zeros(len(load_test_data))
+    for i, (x, y) in enumerate(load_test_data):
+        x, y = to_device(x, y)
+        with ctx:
+            logits, loss = model(x, y)
+        losses[i] = loss.item()
+        y_predict[i] = logits.item()
+    loss_predict = losses.mean()
+    print(f"Predict loss: {loss_predict.item():.4f}")
 
 def quick_test(y_predict, y_test, min_val, max_val, data):
     if data == 'autort':
@@ -107,27 +120,18 @@ def quick_test(y_predict, y_test, min_val, max_val, data):
         b = y_predict * np.sqrt(v) + m
         
     elif data == 'deepdia':
-        
         y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
 
         a = y_test * 100
         b = y_predict * 100
 
     elif data == 'phospho':
-        
         y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
 
         a = y_test
         b = y_predict
     
-    elif data in IONMOD_DATASETS:
-
-        y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
-
-        a = y_test
-        b = y_predict
-
-    elif data in MEIER_DATASETS:
+    elif data in IONMOD_DATASETS or data in MEIER_DATASETS:
 
         y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
 

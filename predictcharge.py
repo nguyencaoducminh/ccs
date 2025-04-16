@@ -6,9 +6,11 @@ from contextlib import nullcontext
 import torch
 import pandas as pd
 import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
+
 from modelcharge import Config, Transformer
 # from dataloader import load_test_data, min_max_scale_rev
-from dataloaderccs import load_test_data, min_max_scale_rev, min_max_scale
+from dataloadercharge import load_test_data, min_max_scale_rev, min_max_scale
 
 # to fix cuda problem (don't know why training works by predicting doesn't)
 # scaled_dot_product_attention(q, k, v, attn_mask, dropout_p, is_causal)
@@ -83,34 +85,40 @@ print(dataset)
 x_test, y_test, all_peps = load_test_data(data=dataset, input_file=input_file, 
                                           seq_header=seq_header, rt_header=rt_header,
                                           CLS=config.CLS, seq_length=int(para.loc['max_length', 'value']))
-y_test = min_max_scale(y_test, min = float(para.loc['min_val', 'value']), max = float(para.loc['max_val', 'value']))
-x_test, y_test = to_device(x_test, y_test)
-print(x_test.shape, y_test.shape)
+
+# y_test = min_max_scale(y_test, min = float(para.loc['min_val', 'value']), max = float(para.loc['max_val', 'value']))
+# x_test, y_test = to_device(x_test, y_test)
+
+# with torch.no_grad():
+#     with ctx:
+#         y_predict, loss = model(x_test, y_test)
+#         print(f"Predict loss: {loss.item():.4f}")
+
+y_test_scaled = min_max_scale(y_test, min = float(para.loc['min_val', 'value']), max = float(para.loc['max_val', 'value']))
+x_tensor = TensorDataset(x_test, y_test_scaled)
+load_test_data = DataLoader(x_tensor, batch_size = 1, shuffle = False)
+
 with torch.no_grad():
-    with ctx:
-        y_predict, loss = model(x_test, y_test)
-        print(f"Predict loss: {loss.item():.4f}")
-    
+    losses = torch.zeros(len(load_test_data))
+    y_predict = torch.zeros(len(load_test_data))
+    for i, (x, y) in enumerate(load_test_data):
+        x, y = to_device(x, y)
+        with ctx:
+            logits, loss = model(x, y)
+        losses[i] = loss.item()
+        y_predict[i] = logits.item()
+    loss_predict = losses.mean()
+    print(f"Predict loss: {loss_predict.item():.4f}")
 
-def quick_test(y_predict, y_test, min_val, max_val, data):
+def postprocessing(y_predict, y_test, min_val, max_val):
+    predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
+    test = y_test.squeeze()
+    return predict, test
 
-    y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
+predict, test = postprocessing(y_predict.detach(), y_test, float(para.loc['min_val', 'value']), float(para.loc['max_val', 'value']))
+mae = torch.median(abs(test-predict))
+print('\nModel epoch =', checkpoint['epoch'], '; MAE =', mae, '\n\n')
 
-    a = y_test
-    b = y_predict
-
-    return a, b
-
-# quick test
-a, b = quick_test(
-    y_predict = y_predict.squeeze().detach(),
-    y_test = y_test.squeeze(),
-    min_val = float(para.loc['min_val', 'value']),
-    max_val = float(para.loc['max_val', 'value']),
-    data=para.loc['data', 'value']
-    )
-mae = torch.median(abs(a-b))
-print('\nModel epoch =', checkpoint['epoch'], '; MAE =', mae, '\n\n')            
 pd.DataFrame({'sequence': all_peps,
-                    'y': a.cpu().float(),
-                    'y_pred': b.cpu().float()}).to_csv(os.path.join(output_dir, output), sep = '\t', index = False)
+                'y': test.cpu().float(),
+                'y_pred': predict.cpu().float()}).to_csv(os.path.join(output_dir, output), sep = '\t', index = False)
