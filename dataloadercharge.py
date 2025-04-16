@@ -184,7 +184,7 @@ def load_test_data(data, input_file, seq_header, rt_header, CLS, seq_length):
         exit(0)
     elif data in MEIER_DATASETS:
         x_test, y_test = data_meier.load_testing_transformer(data)
-        all_peps = data_meier.integer_to_sequence(x_test)               
+        all_peps = data_meier.integer_to_sequence(x_test[:, :-1])               
     else:
         print('Unknown model')
         exit(0)

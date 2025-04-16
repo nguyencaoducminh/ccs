@@ -187,9 +187,6 @@ class Transformer(nn.Module):
     def forward(self, x, targets=None):  
         # x : (batch_size, sequence_length+1)
 
-        # get the charge
-        charge = x[:,-1] # (batch_size, 1)
-
         # create padding mask, add extra dimensions to add the padding to the attention logits.
         src_padding_mask = torch.eq(x, self.config.CLS)[:, None, None, :]        
          
