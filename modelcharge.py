@@ -132,7 +132,9 @@ class Transformer(nn.Module):
 
         self.transformer = nn.ModuleDict(dict(
             wte = nn.Embedding(config.vocab_size, config.n_embd),
-            wpe = nn.Embedding(config.block_size, config.n_embd),
+            wpe = nn.Embedding(config.block_size-1, config.n_embd),
+            # Hardcoding max charge to 5
+            wce = nn.Embedding(5, config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([EncoderLayer(config) for _ in range(config.n_layer)]),
             ln_f = LayerNorm(config.n_embd, bias=config.bias),
@@ -188,16 +190,24 @@ class Transformer(nn.Module):
         # x : (batch_size, sequence_length+1)
 
         # create padding mask, add extra dimensions to add the padding to the attention logits.
-        src_padding_mask = torch.eq(x, self.config.CLS)[:, None, None, :]        
-         
+        src_padding_mask = torch.eq(x, self.config.CLS)[:, None, None, :]                 
+
         # forward the transformer model
+        # Embedding charge
+        charge = x[:, -1] # shape (b, 1)
+        charge_emb = self.transformer.wce(charge).unsqueeze(1) # shape (b, 1, n_embd)
+        
+        # Embedding sequence
+        x = x[:, :-1]
         tok_emb  = self.transformer.wte(x) # token embeddings of shape (b, t, n_embd)
         tok_emb *= math.sqrt(self.config.n_embd)
-        pos = torch.arange(0, self.config.block_size, dtype=torch.long, device=self.config.device) # shape (t)
+        pos = torch.arange(0, self.config.block_size-1, dtype=torch.long, device=self.config.device) # shape (t)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (t, n_embd)
-        pos_emb[-1, :] = 0
-        
+        # pos_emb[-1, :] = 0
         x = self.transformer.drop(tok_emb + pos_emb)
+
+        x = torch.cat((x, charge_emb), dim=1)
+
         for block in self.transformer.h:
             x = block(x, src_padding_mask)
         x = self.transformer.ln_f(x)  
