@@ -21,12 +21,12 @@ AVAILABLE:
 
 # For git repos
 DATA_DIR = './data'
-IONMOD_DIR = DATA_DIR + '/ionmod'
+IONMOB_DIR = DATA_DIR + '/ionmod'
 MEIER_DIR = DATA_DIR + '/meier_2021'
 
 # For server
 # DATA_DIR = os.environ['HOME'] + '/data-ccs'
-# IONMOD_DIR = DATA_DIR + '/zenodo/unimod'
+# IONMOB_DIR = DATA_DIR + '/zenodo/unimod'
 # MEIER_DIR = DATA_DIR + '/Meier_2021'
 
 MEIER_SMALL_DIR = './data/meier_2021'

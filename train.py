@@ -48,7 +48,7 @@ wandb_run_name = 'gpt2' # 'run' + str(time.time())
 # data
 dataset = 'deepdia'
 batch_size = 12
-ionmod_full = False 
+ionmob_full = False 
 # model
 n_layer = 10
 n_head = 8
@@ -115,7 +115,7 @@ ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=
 print(f"device = {device}, device_type = {device_type}, ddp = {ddp}")
 # deepdia data loader # poor man's data loader
 # data = DatasetRT(dataset=dataset, batch_size=batch_size, epochs=epochs, device=device, device_type=device_type)
-data = DatasetCCS(dataset=dataset, ionmod_full=ionmod_full, batch_size=batch_size, epochs=epochs, device=device, device_type=device_type)
+data = DatasetCCS(dataset=dataset, ionmob_full=ionmob_full, batch_size=batch_size, epochs=epochs, device=device, device_type=device_type)
 
 # init these up here, can override if init_from='resume' (i.e. from a checkpoint)
 iter_num = 0

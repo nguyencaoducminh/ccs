@@ -12,8 +12,8 @@ from torch.utils.data import TensorDataset, DataLoader
 Load CCS datasets
 
 Ionmob
-PATH: ./data/ionmod
-AVAILABLE: chang, ogata, sara, tenzer, tenzer-phospho, zepeda with 'ionmod' for the combined dataset
+PATH: ./data/ionmob
+AVAILABLE: chang, ogata, sara, tenzer, tenzer-phospho, zepeda with 'ionmob' for the combined dataset
 
 Meier 2021
 PATH: ./data/meier_2021
@@ -25,12 +25,12 @@ AVAILABLE:
 
 # For git repos
 DATA_DIR = './data'
-IONMOD_DIR = DATA_DIR + '/ionmod'
+IONMOB_DIR = DATA_DIR + '/ionmob'
 MEIER_DIR = DATA_DIR + '/meier_2021'
 
 # For server
 # DATA_DIR = os.environ['HOME'] + '/data-ccs'
-# IONMOD_DIR = DATA_DIR + '/zenodo/unimod'
+# IONMOB_DIR = DATA_DIR + '/zenodo/unimod'
 # MEIER_DIR = DATA_DIR + '/Meier_2021'
 
 MEIER_SMALL_DIR = './data/meier_2021'
@@ -41,7 +41,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 random = 1024
 
 # Available datasets
-IONMOD_DATASETS = ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'ionmod']
+IONMOB_DATASETS = ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'ionmob']
 MEIER_DATASETS = ['small', 'train', 'meier']
 
 def min_max_scale(x, min, max):
@@ -52,7 +52,7 @@ def min_max_scale_rev(x, min, max):
     old_x = x * (max - min) + min
     return old_x
 
-class data_ionmod():
+class data_ionmob():
 
     @classmethod
     def filter_data(cls, data):
@@ -61,56 +61,56 @@ class data_ionmod():
         return data[~data['sequence-tokenized'].apply(lambda x: any(token in x for token in UNSUPPORTED_TOKEN))]
     
     @classmethod
-    def load_data(cls, dataset, ionmod_full = False):
-        # Load data from ionmod dataset
+    def load_data(cls, dataset, ionmob_full = False):
+        # Load data from ionmob dataset
         if dataset == 'chang':
-            data = pd.read_parquet(IONMOD_DIR + '/Chang_unique_unimod.parquet')
+            data = pd.read_parquet(IONMOB_DIR + '/Chang_unique_unimod.parquet')
             data = data.drop(columns=['sequence'])
         elif dataset == 'ogata':
-            data = pd.read_parquet(IONMOD_DIR + '/Ogata_unique_unimod.parquet')
+            data = pd.read_parquet(IONMOB_DIR + '/Ogata_unique_unimod.parquet')
             data = data.drop(columns=['name'])
         elif dataset == 'sara':
-            data = pd.read_parquet(IONMOD_DIR + '/Sara_unique_unimod.parquet')
-            data_c1 = pd.read_parquet(IONMOD_DIR + '/Sara_unique_c1_unimod.parquet')
+            data = pd.read_parquet(IONMOB_DIR + '/Sara_unique_unimod.parquet')
+            data_c1 = pd.read_parquet(IONMOB_DIR + '/Sara_unique_c1_unimod.parquet')
             data = pd.concat([data, data_c1])
         elif dataset == 'tenzer':
-            data = pd.read_parquet(IONMOD_DIR + '/Tenzer_unique_unimod.parquet')
-            data_c1 = pd.read_parquet(IONMOD_DIR + '/Tenzer_unique_c1_unimod.parquet')
+            data = pd.read_parquet(IONMOB_DIR + '/Tenzer_unique_unimod.parquet')
+            data_c1 = pd.read_parquet(IONMOB_DIR + '/Tenzer_unique_c1_unimod.parquet')
             data = pd.concat([data, data_c1])
         elif dataset == 'tenzer-phospho':
-            data_train = pd.read_parquet(IONMOD_DIR + '/Tenzer-phospho-train_unique_unimod.parquet')
-            data_valid = pd.read_parquet(IONMOD_DIR + '/Tenzer-phospho-valid_unique_unimod.parquet')
-            if ionmod_full:
+            data_train = pd.read_parquet(IONMOB_DIR + '/Tenzer-phospho-train_unique_unimod.parquet')
+            data_valid = pd.read_parquet(IONMOB_DIR + '/Tenzer-phospho-valid_unique_unimod.parquet')
+            if ionmob_full:
                 return data_train, data_valid
             else:
                 return cls.filter_data(data_train), cls.filter_data(data_valid)
         elif dataset == 'zepeda':
-            data = pd.read_parquet(IONMOD_DIR + '/Zepeda_unique_unimod.parquet')
-            data_c1 = pd.read_parquet(IONMOD_DIR + '/Zepeda_unique_c1_unimod.parquet')
-            data_thunder = pd.read_parquet(IONMOD_DIR + '/Zepeda_thunder_unique_unimod.parquet')
+            data = pd.read_parquet(IONMOB_DIR + '/Zepeda_unique_unimod.parquet')
+            data_c1 = pd.read_parquet(IONMOB_DIR + '/Zepeda_unique_c1_unimod.parquet')
+            data_thunder = pd.read_parquet(IONMOB_DIR + '/Zepeda_thunder_unique_unimod.parquet')
             data = pd.concat([data, data_c1, data_thunder])
-        elif dataset == 'ionmod':
-            data_chang = pd.read_parquet(IONMOD_DIR + '/Chang_unique_unimod.parquet')
-            data_otega = pd.read_parquet(IONMOD_DIR + '/Ogata_unique_unimod.parquet')
-            data_sara = pd.read_parquet(IONMOD_DIR + '/Sara_unique_unimod.parquet')
-            data_sara_c1 = pd.read_parquet(IONMOD_DIR + '/Sara_unique_c1_unimod.parquet')
-            data_tenzer = pd.read_parquet(IONMOD_DIR + '/Tenzer_unique_unimod.parquet')
-            data_tenzer_c1 = pd.read_parquet(IONMOD_DIR + '/Tenzer_unique_c1_unimod.parquet')
-            data_tenzer_phospho_train = pd.read_parquet(IONMOD_DIR + '/Tenzer-phospho-train_unique_unimod.parquet')
-            data_tenzer_phospho_valid = pd.read_parquet(IONMOD_DIR + '/Tenzer-phospho-valid_unique_unimod.parquet')
-            data_zepeda = pd.read_parquet(IONMOD_DIR + '/Zepeda_unique_unimod.parquet')
-            data_zepeda_c1 = pd.read_parquet(IONMOD_DIR + '/Zepeda_unique_c1_unimod.parquet')
-            data_zepeda_thunder = pd.read_parquet(IONMOD_DIR + '/Zepeda_thunder_unique_unimod.parquet')
+        elif dataset == 'ionmob':
+            data_chang = pd.read_parquet(IONMOB_DIR + '/Chang_unique_unimod.parquet')
+            data_otega = pd.read_parquet(IONMOB_DIR + '/Ogata_unique_unimod.parquet')
+            data_sara = pd.read_parquet(IONMOB_DIR + '/Sara_unique_unimod.parquet')
+            data_sara_c1 = pd.read_parquet(IONMOB_DIR + '/Sara_unique_c1_unimod.parquet')
+            data_tenzer = pd.read_parquet(IONMOB_DIR + '/Tenzer_unique_unimod.parquet')
+            data_tenzer_c1 = pd.read_parquet(IONMOB_DIR + '/Tenzer_unique_c1_unimod.parquet')
+            data_tenzer_phospho_train = pd.read_parquet(IONMOB_DIR + '/Tenzer-phospho-train_unique_unimod.parquet')
+            data_tenzer_phospho_valid = pd.read_parquet(IONMOB_DIR + '/Tenzer-phospho-valid_unique_unimod.parquet')
+            data_zepeda = pd.read_parquet(IONMOB_DIR + '/Zepeda_unique_unimod.parquet')
+            data_zepeda_c1 = pd.read_parquet(IONMOB_DIR + '/Zepeda_unique_c1_unimod.parquet')
+            data_zepeda_thunder = pd.read_parquet(IONMOB_DIR + '/Zepeda_thunder_unique_unimod.parquet')
             data = pd.concat([data_chang, data_otega, data_sara, data_sara_c1, data_tenzer, data_tenzer_c1, data_tenzer_phospho_train, data_tenzer_phospho_valid, data_zepeda, data_zepeda_c1, data_zepeda_thunder])
-        if ionmod_full:
+        if ionmob_full:
             return data
         else:
             return cls.filter_data(data)
     
     @classmethod
-    def ionmod_to_integer(cls, sequences, max_sequence_length = 60):
+    def ionmob_to_integer(cls, sequences, max_sequence_length = 60):
         
-        IONMOD_ALPHABET = {
+        ionmob_ALPHABET = {
             "A": 1,
             "C": 2,
             "D": 3,
@@ -150,7 +150,7 @@ class data_ionmod():
                     continue
                 if s == '<END>':
                     continue
-                array[i, j-non_dict] = IONMOD_ALPHABET[s]
+                array[i, j-non_dict] = ionmob_ALPHABET[s]
         return array
     
     @classmethod
@@ -167,48 +167,48 @@ class data_ionmod():
         return data[:split_index], data[split_index:]
 
     @classmethod
-    def load_ionmod(cls, dataset, max_sequence_length = 60, ionmod_full = False):
+    def load_ionmob(cls, dataset, max_sequence_length = 60, ionmob_full = False):
         if dataset == 'tenzer-phospho':
-            if ionmod_full:
-                data_train, data_valid = cls.load_data('tenzer-phospho', ionmod_full)
+            if ionmob_full:
+                data_train, data_valid = cls.load_data('tenzer-phospho', ionmob_full)
             else:
                 data_train, data_valid = cls.load_data('tenzer-phospho')
-            x_train = cls.ionmod_to_integer(data_train['sequence-tokenized'], max_sequence_length = max_sequence_length)
+            x_train = cls.ionmob_to_integer(data_train['sequence-tokenized'], max_sequence_length = max_sequence_length)
             y_train = data_train['ccs'].to_numpy()
-            x_valid = cls.ionmod_to_integer(data_valid['sequence-tokenized'], max_sequence_length = max_sequence_length)
+            x_valid = cls.ionmob_to_integer(data_valid['sequence-tokenized'], max_sequence_length = max_sequence_length)
             y_valid = data_valid['ccs'].to_numpy()
             return (x_train, y_train), (x_valid, y_valid)
 
-        if ionmod_full:
-            data = cls.load_data(dataset, ionmod_full)
+        if ionmob_full:
+            data = cls.load_data(dataset, ionmob_full)
         else:
             data = cls.load_data(dataset)
         data_train_val, data_test = cls.split_data(data)
         data_train, data_val = cls.split_data(data_train_val, split=0.875)
         
-        x_train = cls.ionmod_to_integer(data_train['sequence-tokenized'], max_sequence_length = max_sequence_length)
+        x_train = cls.ionmob_to_integer(data_train['sequence-tokenized'], max_sequence_length = max_sequence_length)
         y_train = data_train['ccs'].to_numpy()
-        x_val = cls.ionmod_to_integer(data_val['sequence-tokenized'], max_sequence_length = max_sequence_length)
+        x_val = cls.ionmob_to_integer(data_val['sequence-tokenized'], max_sequence_length = max_sequence_length)
         y_val = data_val['ccs'].to_numpy()
         
-        x_test = cls.ionmod_to_integer(data_test['sequence-tokenized'], max_sequence_length = max_sequence_length)
+        x_test = cls.ionmob_to_integer(data_test['sequence-tokenized'], max_sequence_length = max_sequence_length)
         y_test = data_test['ccs'].to_numpy()
-        np.save(f'./data/ionmod/test/{dataset}_x_test.npy', x_test)
-        np.save(f'./data/ionmod/test/{dataset}_y_test.npy', y_test)
+        np.save(f'./data/ionmob/test/{dataset}_x_test.npy', x_test)
+        np.save(f'./data/ionmob/test/{dataset}_y_test.npy', y_test)
 
         return (x_train, y_train), (x_val, y_val)
 
     @classmethod
-    def load_training_transformer(cls, dataset, ionmod_full = False):
-        if ionmod_full:
-            return cls.load_ionmod(dataset, ionmod_full=ionmod_full)
+    def load_training_transformer(cls, dataset, ionmob_full = False):
+        if ionmob_full:
+            return cls.load_ionmob(dataset, ionmob_full=ionmob_full)
         else:
-            return cls.load_ionmod(dataset)       
+            return cls.load_ionmob(dataset)       
         
     @classmethod
     def load_testing_transformer(cls, dataset):
-        x_test = np.load(f'./data/ionmod/test/{dataset}_x_test.npy')
-        y_test = np.load(f'./data/ionmod/test/{dataset}_y_test.npy')
+        x_test = np.load(f'./data/ionmob/test/{dataset}_x_test.npy')
+        y_test = np.load(f'./data/ionmob/test/{dataset}_y_test.npy')
 
         return (x_test, y_test)
 
@@ -327,9 +327,9 @@ def load_test_data(data, input_file, seq_header, rt_header, CLS, seq_length):
     if input_file is not None:
         print('Incomplete')
         exit(0)
-    elif data in IONMOD_DATASETS:
-        x_test, y_test = data_ionmod.load_testing_transformer(data)
-        all_peps = data_ionmod.integer_to_sequence_phospho(x_test)
+    elif data in IONMOB_DATASETS:
+        x_test, y_test = data_ionmob.load_testing_transformer(data)
+        all_peps = data_ionmob.integer_to_sequence_phospho(x_test)
     elif data in MEIER_DATASETS:
         x_test, y_test = data_meier.load_testing_transformer(data)
         all_peps = data_meier.integer_to_sequence(x_test)               
@@ -347,12 +347,12 @@ def load_test_data(data, input_file, seq_header, rt_header, CLS, seq_length):
     
 class DatasetCCS():
 
-    def __init__(self, dataset, batch_size, epochs, device_type = 'cpu', device = 'cpu', ionmod_full = False):
-        if dataset in IONMOD_DATASETS:
-            if ionmod_full:
-                (x_train, y_train), (x_val, y_val) = data_ionmod.load_training_transformer(dataset, ionmod_full)
+    def __init__(self, dataset, batch_size, epochs, device_type = 'cpu', device = 'cpu', ionmob_full = False):
+        if dataset in IONMOB_DATASETS:
+            if ionmob_full:
+                (x_train, y_train), (x_val, y_val) = data_ionmob.load_training_transformer(dataset, ionmob_full)
             else:
-                (x_train, y_train), (x_val, y_val) = data_ionmod.load_training_transformer(dataset)
+                (x_train, y_train), (x_val, y_val) = data_ionmob.load_training_transformer(dataset)
         elif dataset in MEIER_DATASETS:
             (x_train, y_train), (x_val, y_val) = data_meier.load_training_transformer(dataset)
         else: 

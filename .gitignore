@@ -4,6 +4,7 @@
 /out-deepdia-b64-dm64-df256-nl4-nh8-dr0.1-ep2
 /out
 /__pycache__
+/rt/utils/__pycache__
 /.ipynb_checkpoints
 /data/ionmod/test/*.npy
 /data/meier_2021/test/*.npy

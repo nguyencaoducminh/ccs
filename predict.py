@@ -36,7 +36,7 @@ exec(open('configurator.py').read()) # overrides from command line or config fil
 # -----------------------------------------------------------------------------
 
 # CCS Available datasets
-IONMOD_DATASETS = ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'ionmod']
+IONMOB_DATASETS = ['chang', 'ogata', 'sara', 'tenzer', 'tenzer-phospho', 'zepeda', 'ionmob']
 MEIER_DATASETS = ['small', 'train', 'meier']
 
 def to_device(x, y):
@@ -57,7 +57,7 @@ ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=
 
 # model. Load from a model saved in a specific directory
 ckpt_path = os.path.join(model_dir, 'ckpt.pt')
-checkpoint = torch.load(ckpt_path, map_location=device)
+checkpoint = torch.load(ckpt_path, map_location=device, weights_only=False)
 config = Config(**checkpoint['model_args'])
 config.device = device
 model = Transformer(config)
@@ -131,7 +131,7 @@ def quick_test(y_predict, y_test, min_val, max_val, data):
         a = y_test
         b = y_predict
     
-    elif data in IONMOD_DATASETS or data in MEIER_DATASETS:
+    elif data in IONMOB_DATASETS or data in MEIER_DATASETS:
 
         y_predict = min_max_scale_rev(y_predict, min = min_val, max = max_val)
 

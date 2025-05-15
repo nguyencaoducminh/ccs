@@ -97,7 +97,7 @@ else:
     seed_offset = 0
     ddp_world_size = 1
 
-cp_path = dataset + '-b' + str(batch_size) + '-dm' + str(n_embd) + '-df' + str(dff) + '-nl' + str(n_layer) + '-nh' + str(n_head) + '-dr' + str(dropout) + '-ep' + str(epochs)
+cp_path = dataset + '-charge' + '-b' + str(batch_size) + '-dm' + str(n_embd) + '-df' + str(dff) + '-nl' + str(n_layer) + '-nh' + str(n_head) + '-dr' + str(dropout) + '-ep' + str(epochs)
 out_dir = os.path.join(out_root, cp_path)
 print(out_dir)
 
